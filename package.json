@@ -1,0 +1,25 @@
+{
+  "name": "employeeTracker",
+  "version": "1.0.0",
+  "description": "A content Management System that uses MySQL database, Node and inquirer to manage employee information",
+  "main": "employeeTracker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkalaparthy/employeeTracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vkalaparthy/employeeTracker/issues"
+  },
+  "homepage": "https://github.com/vkalaparthy/employeeTracker#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
