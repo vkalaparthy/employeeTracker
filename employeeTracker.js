@@ -1,5 +1,6 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
+const cTable = require("console.table");
 
 // Open a connection
 var connection = mysql.createConnection({
@@ -25,7 +26,6 @@ connection.connect(err => {
 });
 
 function init() {
-    console.log("In init");
     displayDepartment();
     // displayEmployee();
     // displayEmpRole();
@@ -36,9 +36,11 @@ function displayDepartment() {
     connection.query("SELECT * FROM department", function(err, res) {
         if (err) throw err;
         // Log all results of the SELECT statement
-        console.log(res);
+        //console.log(res);
         console.log("-----------------------------");
-      });
+         const table = cTable.getTable(res);
+         console.log(table);
+    });
 };
 
 function displayEmployee() {
