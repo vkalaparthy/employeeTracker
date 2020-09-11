@@ -39,17 +39,21 @@ function init() {
       "View all Departments", "Exit"]
     })
     .then (function(response) {
-        if (response.choice === "View All employees") {
-            viewAllEmployees();
-        }
-        else if (response.choice === "View all employees by Department") {
-            viewEmpByDept();
-        }
-        else if (response.choice === "View all Departments") {
-            viewAllDepartments();
-        }
-        else {
-            connection.end();
+        switch(response.choice) {
+            case "View All employees":
+                viewAllEmployees();
+                break;
+            case "View all employees by Department":
+                viewEmpByDept();
+                break;
+            case "View all Departments":
+                viewAllDepartments();
+                break;
+            case "Add new employee":
+                addNewEmployee();
+                break;
+            default:
+                connection.end();
         }
     })
 };
@@ -83,5 +87,37 @@ function viewAllEmployees() {
 function viewEmpByDept() {
     console.log("viewEmpByDept");
     // Go back to prompt user
-    init()
+    connection.query("SELECT * FROM department", (err, results) => {
+        if (err) throw err;
+        // once you have the items, prompt the user for which they'd like to bid on
+        inquirer
+          .prompt([
+            {
+              name: "choice",
+              type: "rawlist",
+              choices: function() {
+                const choiceArray = [];
+                for (var i = 0; i < results.length; i++) {
+                  choiceArray.push(results[i].name);
+                }
+                return choiceArray;
+              },
+              message: "Choose a department"
+            }
+        ])
+        .then((answer) => { 
+            let query = "SELECT first_name, last_name, name from employee ";
+            query += "INNER JOIN emp_role ON employee.role_id = emp_role.id ";
+            query += "INNER JOIN department ON emp_role.dept_id = department.deptid ";
+            query += "WHERE ?";
+            connection.query(query, {name: answer.choice}, (err, res) => {
+                //console.log(query);
+                console.log("\n--------------------------------------------------");
+                const table = cTable.getTable(res);
+                console.log(table);
+                init();
+            })
+        })
+        //init()
+    });
 };

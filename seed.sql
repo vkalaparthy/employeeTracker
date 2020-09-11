@@ -46,3 +46,7 @@ CREATE TABLE employee (
   -- Sets id as this table's primary key which means all data contained within it will be unique --
   PRIMARY KEY (empid)
 );
+
+SELECT * FROM department;
+SELECT * FROM emp_role;
+SELECT * FROM employee;
