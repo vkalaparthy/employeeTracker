@@ -36,7 +36,7 @@ function init() {
       type: "list",
       message: "What would you like to do?",
       choices: ["View All employees", "View all employees by Department", 
-      "View all Departments", "Exit"]
+      "View all Departments", "View all roles", "Add a new Department", "Exit"]
     })
     .then (function(response) {
         switch(response.choice) {
@@ -49,8 +49,11 @@ function init() {
             case "View all Departments":
                 viewAllDepartments();
                 break;
-            case "Add new employee":
-                addNewEmployee();
+            case "View all roles":
+                viewAllRoles();
+                break;
+            case "Add a new Department":
+                addDepartment();
                 break;
             default:
                 connection.end();
@@ -70,10 +73,23 @@ function viewAllDepartments() {
     });
 };
 
+function viewAllRoles() {
+    const query = "SELECT title, salary, name FROM emp_role INNER JOIN department ON dept_id = deptid";
+    connection.query(query, function(err, res) {
+        if (err) throw err;
+        // Log all results of the SELECT statement
+        console.log("\n--------------------------------------------------");
+        const table = cTable.getTable(res);
+        console.log(table);
+        // Go back to prompt user 
+        init();
+    });
+};
+
 function viewAllEmployees() {
-   // connection.query("SELECT * FROM employee", function(err, res) {
-    connection.query(
-    "SELECT empid, first_name, Last_name, c1.title, c1.salary, c2.name FROM employee AS c INNER JOIN emp_role AS c1 ON c.role_id = c1.id INNER JOIN department AS c2 ON c1.dept_id = c2.deptid", function(err, res) {
+   let query = "SELECT empid, first_name, Last_name, title, salary, name FROM employee ";
+   query += "INNER JOIN emp_role ON role_id = id INNER JOIN department ON dept_id = deptid";
+    connection.query(query, function(err, res) {
         if (err) throw err;
         // Log all results of the SELECT statement
         console.log("\n--------------------------------------------------");
@@ -85,7 +101,7 @@ function viewAllEmployees() {
 };
 
 function viewEmpByDept() {
-    console.log("viewEmpByDept");
+    //console.log("viewEmpByDept");
     // Go back to prompt user
     connection.query("SELECT * FROM department", (err, results) => {
         if (err) throw err;
@@ -106,11 +122,12 @@ function viewEmpByDept() {
             }
         ])
         .then((answer) => { 
-            let query = "SELECT first_name, last_name, name from employee ";
+            let query = "SELECT first_name, last_name, title from employee ";
             query += "INNER JOIN emp_role ON employee.role_id = emp_role.id ";
             query += "INNER JOIN department ON emp_role.dept_id = department.deptid ";
             query += "WHERE ?";
             connection.query(query, {name: answer.choice}, (err, res) => {
+                if (err) throw err;
                 //console.log(query);
                 console.log("\n--------------------------------------------------");
                 const table = cTable.getTable(res);
@@ -120,4 +137,35 @@ function viewEmpByDept() {
         })
         //init()
     });
+};
+
+const validateTheResponse = async (input) => {
+    if (input === "") {
+       return 'Incorrect response!!';
+    }
+    return true;
+}
+
+function addDepartment() {
+
+    inquirer
+        .prompt([
+        {
+            name: "name",
+            type: "input",
+            message: "What is the name of the department?",
+            validate: validateTheResponse
+        }
+        ])
+        .then((answer) => { 
+            //create the new department
+            const query = `INSERT INTO department (name) VALUES ("${answer.name}")`;
+            connection.query(query, (err, res) => {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Added ${answer.name} to department`);
+                init();
+            })
+        })
 };
