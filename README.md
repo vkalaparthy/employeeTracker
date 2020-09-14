@@ -36,7 +36,8 @@ Create the database and tables and fill in the rows as you prefer in MySQL(there
 * View employees by manager
 * Delete employees
 
-![Image of image](./asset/EmpTracker.JPG)
+![screenshot1](./asset/EmpTracker.JPG)
+![screenshot2](./asset/CaptureEmp2.JPG)
 
 Small demo
 
