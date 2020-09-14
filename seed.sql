@@ -83,7 +83,7 @@ VALUES ("Branding Lead", "60000.00", 4),
 
 
 --------------- IT department ----------
-INSERT INTO EMPLOYEE (first_name, last_name, role_id)
+INSERT INTO employee (first_name, last_name, role_id)
  VALUES ("Mark", "Zuppa", 1);
 
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
