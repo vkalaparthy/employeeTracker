@@ -4,7 +4,7 @@ const cTable = require("console.table");
 const showBanner = require("node-banner");
 
 // Open a connection
-var connection = mysql.createConnection({
+const connection = mysql.createConnection({
     host: "localhost",
   
     // Your port; if not 3306
@@ -37,33 +37,20 @@ function init() {
       name: "choice",
       type: "list",
       message: "What would you like to do?",
-      choices: ["View All employees", "View employees by Manager", 
-      "View all Departments", "View all roles", "Add a Department", 
-      "Add a role", "Add an employee", "Update employee role", 
-      "Delete a employee", "Exit"]
+      choices: ["View", "Add", "View employees by Manager",  
+       "Update employee role", "Delete a employee", 
+       "Utilized budget of a department", "Exit"]
     })
     .then (function(response) {
         switch(response.choice) {
-            case "View All employees":
-                viewAllEmployees();
+            case "View":
+                viewWhat();
+                break;
+            case "Add":
+                addWhat();
                 break;
             case "View employees by Manager":
                 viewEmpByMgr();
-                break;
-            case "View all Departments":
-                viewAllDepartments();
-                break;
-            case "View all roles":
-                viewAllRoles();
-                break;
-            case "Add a Department":
-                addDepartment();
-                break;
-            case "Add a role":
-                addRole();
-                break;
-            case "Add an employee":
-                addEmployee();
                 break;
             case "Update employee role":
                 updateEmployeeRole();
@@ -71,54 +58,69 @@ function init() {
             case "Delete a employee":
                 deleteEmployee();
                 break;
+            case "Utilized budget of a department":
+                budgetPerDept();
+                break;
             default:
                 connection.end();
         }
     })
 };
 
-// function that will show all departments to the user from the db table department
-function viewAllDepartments() {
-    connection.query("SELECT * FROM department", function(err, res) {
-        if (err) throw err;
-        // Log all results of the SELECT statement
-        console.log("\n--------------------------------------------------");
-        const table = cTable.getTable(res);
-        console.log(table);
-        // Go back to prompt user 
-        init();
-    });
-};
+//Function to view Departms, Roles and Employees based on user choice
+function viewWhat() {
+    inquirer
+    .prompt([
+        {
+            name: "choice",
+            type: "list",
+            message: "Choose what to view",
+            choices: ["All Departments", "All Roles", "All Employees"]
+        }
+    ])
+    .then (viewOption => {
+        let query = "";
+        if (viewOption.choice === "All Departments") {
+            query = "SELECT * FROM department";
+        } else if (viewOption.choice === "All Roles") {
+            query = "SELECT title, salary, name as department FROM emp_role INNER JOIN department ON dept_id = deptid";
+        } else {
+            query = "SELECT CONCAT(a.first_name, \" \", a.last_name) AS fullname, title, salary, name AS department, ";
+            query += "CONCAT(b.first_name, \" \", b.last_name) AS manager FROM employee a LEFT JOIN employee b ON a.manager_id = b.empid ";
+            query += "INNER JOIN emp_role ON a.role_id = id INNER JOIN department ON dept_id = deptid";
+        }
+        connection.query(query, function(err, res) {
+            if (err) throw err;
+            // Log all results of the SELECT statement
+            console.log("\n--------------------------------------------------");
+            const table = cTable.getTable(res);
+            console.log(table);
+            // Go back to prompt user 
+            init();
+        });
+    })
+}
 
-// function that will show all roles to the user
-function viewAllRoles() {
-    const query = "SELECT title, salary, name as department FROM emp_role INNER JOIN department ON dept_id = deptid";
-    connection.query(query, function(err, res) {
-        if (err) throw err;
-        // Log all results of the SELECT statement
-        console.log("\n--------------------------------------------------");
-        const table = cTable.getTable(res);
-        console.log(table);
-        // Go back to prompt user 
-        init();
-    });
-};
-
-// function that will show all employees to the user
-function viewAllEmployees() {
-
-   let query = "SELECT CONCAT(a.first_name, \" \", a.last_name) AS fullname, title, salary, name AS department, ";
-   query += "CONCAT(b.first_name, \" \", b.last_name) AS manager FROM employee a LEFT JOIN employee b ON a.manager_id = b.empid ";
-   query += "INNER JOIN emp_role ON a.role_id = id INNER JOIN department ON dept_id = deptid";
-    connection.query(query, function(err, res) {
-        if (err) throw err;
-        // Log all results of the SELECT statement
-        console.log("\n--------------------------------------------------");
-        const table = cTable.getTable(res);
-        console.log(table);
-        // Go back to prompt user 
-        init();
-    });
+//function to add a new Department or a Role or an Employee to the company based on user's choice
+function addWhat() {
+    inquirer
+    .prompt([
+        {
+            name: "choice",
+            type: "list",
+            message: "Choose what to add",
+            choices: ["A new department", "A new role", "A new employees"]
+        }
+    ])
+    .then (answer => {
+        if (answer.choice === "A new department") {
+            addDepartment();
+        } else if (answer.choice === "A new role") {
+            addRole();
+        } else {
+            addEmployee();
+        }
+    })
 };
 
 // This function will show the employees based on a chosen Manager
@@ -136,7 +138,7 @@ function viewEmpByMgr() {
               type: "rawlist",
               choices: function() {
                 const choiceArray = [];
-                for (var i = 0; i < results.length; i++) {
+                for (let i = 0; i < results.length; i++) {
                   choiceArray.push(results[i].first_name + " " + results[i].last_name);
                 }
                 return choiceArray;
@@ -147,12 +149,12 @@ function viewEmpByMgr() {
         .then((answer) => { 
 
             let manager_id;
-            for (var i = 0; i < results.length; i++) {
+            for (let i = 0; i < results.length; i++) {
                 if (answer.choice === results[i].first_name + " " + results[i].last_name) {
                     manager_id = results[i].empid;
                 }
             }
-            query = "SELECT empid, first_name, Last_name, title FROM employee ";
+            query = "SELECT  CONCAT(first_name, \" \", last_name) AS fullname, title FROM employee ";
             query += "INNER JOIN emp_role ON role_id = id INNER JOIN department ON dept_id = deptid "
             query += "WHERE manager_id = ?";
             //console.log(manager_id);
@@ -194,7 +196,7 @@ function addDepartment() {
             //create the new department
             let isDuplicate = false;
             connection.query("SELECT * FROM department", (err, results) => { 
-                for (var i = 0; i < results.length; i++) {
+                for (let i = 0; i < results.length; i++) {
                     if (results[i].name === answer.name) {
                         isDuplicate = true;
                     }
@@ -242,7 +244,7 @@ function addRole() {
                 type: "rawlist",
                 choices: function() {
                   const choiceArray = [];
-                  for (var i = 0; i < results.length; i++) {
+                  for (let i = 0; i < results.length; i++) {
                     choiceArray.push(results[i].name);
                   }
                   return choiceArray;
@@ -253,7 +255,7 @@ function addRole() {
         .then((answer) => { 
             let dept_id;
             //Get the dept_id from the previous query results
-            for (var i = 0; i < results.length; i++) {
+            for (let i = 0; i < results.length; i++) {
                 if (results[i].name === answer.dept)
                     dept_id = results[i].deptid;
             }
@@ -272,8 +274,34 @@ function addRole() {
     });
 };
 
+// function might be removed soon
+function getRoleQuestion() {
+  return new Promise(function(resolve, reject) {
+    connection.query("SELECT * FROM emp_role", (err, roleResults) => { 
+        if (err) {
+            return reject(err);
+        } 
+        const choiceArray = [];
+        for (let i = 0; i < roleResults.length; i++) {
+            choiceArray.push(roleResults[i].title);
+        }
+        const question = [
+            {
+                name: "role",
+                type: "rawlist",
+                message: "Try new prompt for role",
+                choices: choiceArray
+            }
+        ];
+        console.log(question);
+        resolve(question);
+    });
+  })
+};
+
+//This function might be removed
 function promptForRole () {
-    connection .query("SELECT * FROM emp_role", (err, roleResults) => { 
+    connection.query("SELECT * FROM emp_role", (err, roleResults) => { 
         if (err) {
             throw err;
         }
@@ -284,8 +312,8 @@ function promptForRole () {
                 type: "rawlist",
                 choices: function() {
                     const choiceArray = [];
-                    for (var i = 0; i < roleResults.length; i++) {
-                    choiceArray.push(roleResults[i].title);
+                    for (let i = 0; i < roleResults.length; i++) {
+                        choiceArray.push(roleResults[i].title);
                     }
                     //return choiceArray;
                     return ([...new Set(choiceArray)]);
@@ -300,8 +328,9 @@ function promptForRole () {
     })
 };
 
+//This function is not used, trying to see ow I can move some common promts
 function promptForDept () {
-    connection .query("SELECT * FROM department", (err, deptResults) => { 
+    connection.query("SELECT * FROM department", (err, deptResults) => { 
         if (err) {
             throw err;
         }
@@ -311,8 +340,8 @@ function promptForDept () {
                 type: "rawlist",
                 choices: function() {
                     const choiceArray = [];
-                    for (var i = 0; i < deptResults.length; i++) {
-                    choiceArray.push(deptResults[i].name);
+                    for (let i = 0; i < deptResults.length; i++) {
+                        choiceArray.push(deptResults[i].name);
                     }
                     return choiceArray;
                 },
@@ -325,7 +354,8 @@ function promptForDept () {
         })
     })
 };
-//function to add an employee to the database table employee
+
+//function to add an employee to the database table employee. This function is too long, should see how to break it to smaller chunks!
 async function addEmployee() {
     let role_id;
     let manager_id;
@@ -345,7 +375,7 @@ async function addEmployee() {
             }
         ])
         .then (answer => {
-            connection .query("SELECT * FROM emp_role", (err, roleResults) => { 
+            connection.query("SELECT * FROM emp_role", (err, roleResults) => { 
                 if (err) {
                     throw err;
                 }
@@ -356,8 +386,8 @@ async function addEmployee() {
                         type: "rawlist",
                         choices: function() {
                             const choiceArray = [];
-                            for (var i = 0; i < roleResults.length; i++) {
-                            choiceArray.push(roleResults[i].title);
+                            for (let i = 0; i < roleResults.length; i++) {
+                                choiceArray.push(roleResults[i].title);
                             }
                             //return choiceArray;
                             return ([...new Set(choiceArray)]);
@@ -365,10 +395,18 @@ async function addEmployee() {
                         message: "Choose a role"
                     }
                 ])
+            // try {
+            //     const question = await getRoleQuestion();
+            //     console.log(question);
+            // } 
+            // catch (error) {
+            //     console.log(error)
+            // }
+            // init();
             //const role = await promptForRole();
         //    const dept = promptForDept();
                 .then(roleAnswer => {
-                    connection .query("SELECT * FROM department", (err, deptResults) => { 
+                    connection.query("SELECT * FROM department", (err, deptResults) => { 
                         if (err) {
                             throw err;
                         }
@@ -379,8 +417,8 @@ async function addEmployee() {
                                 type: "rawlist",
                                 choices: function() {
                                     const choiceArray = [];
-                                    for (var i = 0; i < deptResults.length; i++) {
-                                    choiceArray.push(deptResults[i].name);
+                                    for (let i = 0; i < deptResults.length; i++) {
+                                        choiceArray.push(deptResults[i].name);
                                     }
                                     return choiceArray;
                                 },
@@ -405,8 +443,8 @@ async function addEmployee() {
                                             type: "rawlist",
                                             choices: function() {
                                                 const choiceArray = ["none"];
-                                                for (var i = 0; i < empResult.length; i++) {
-                                                choiceArray.push(empResult[i].first_name + " " + empResult[i].last_name);
+                                                for (let i = 0; i < empResult.length; i++) {
+                                                    choiceArray.push(empResult[i].first_name + " " + empResult[i].last_name);
                                                 }
                                                 return choiceArray;
                                             },
@@ -428,7 +466,7 @@ async function addEmployee() {
                                             let mgr = mgrAnswer.manager.split(" ");
                                             let mgrFirstname = mgr[0];
                                             let mgrLastname = mgr[1];
-                                            for (var i = 0; i < empResult.length; i++) {
+                                            for (let i = 0; i < empResult.length; i++) {
                                                 if (empResult[i].first_name === mgrFirstname  && empResult[i].last_name === mgrLastname) {
                                                     manager_id = empResult[i].empid;
                                                 }
@@ -456,9 +494,10 @@ async function addEmployee() {
 };
 
 
+// Function to update employee role
 function updateEmployeeRole() {
 
-    connection .query("SELECT * FROM employee", (err, results) => { 
+    connection.query("SELECT * FROM employee", (err, results) => { 
         if (err) {
             throw err;
         }
@@ -470,7 +509,7 @@ function updateEmployeeRole() {
             choices: function() {
                 const choiceArray = [];
                 for (let i = 0; i < results.length; i++) {
-                choiceArray.push(results[i].first_name + " " + results[i].last_name);
+                    choiceArray.push(results[i].first_name + " " + results[i].last_name);
                 }
                 return choiceArray;
             },
@@ -480,7 +519,7 @@ function updateEmployeeRole() {
         .then (answer => { 
             let firstName = answer.empName.split(" ")[0];
             let lastName = answer.empName.split(" ")[1];
-            connection .query("SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = deptid", (err, roleResults) => { 
+            connection.query("SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = deptid", (err, roleResults) => { 
                 if (err) {
                     throw err;
                 }
@@ -529,7 +568,7 @@ function updateEmployeeRole() {
 // function to delete an employee from the database
 function deleteEmployee() {
 
-    connection .query("SELECT * FROM employee", (err, results) => { 
+    connection.query("SELECT * FROM employee", (err, results) => { 
         if (err) {
             throw err;
         }
@@ -561,9 +600,53 @@ function deleteEmployee() {
                 if (err) {
                     throw err;
                 }
-                console.log("Delete successful");
+                //console.log("Delete successful");
                 init();
             })
         })
     });
+};
+
+//function to view budget of a department
+function budgetPerDept() {
+    connection.query("SELECT * FROM department", (err, deptResults) => { 
+        if (err) {
+            throw err;
+        }
+        inquirer
+        .prompt([ 
+            {
+                name: "dept",
+                type: "rawlist",
+                choices: function() {
+                    const choiceArray = [];
+                    for (let i = 0; i < deptResults.length; i++) {
+                        choiceArray.push(deptResults[i].name);
+                    }
+                    return choiceArray;
+                },
+                message: "Choose a department"
+            }
+        ])
+        .then (answer => {
+            let deptid = 0
+            let total = 0;
+            for (let i = 0; i < deptResults.length; i++) {
+                if(deptResults[i].name === answer.dept) {
+                    deptid = deptResults[i].deptid;
+                }
+            }
+            console.log("\n--------------------------------------------");
+            let query = "SELECT salary FROM emp_role WHERE dept_id = ?";
+            connection.query (query, [deptid], (err, results) => {
+                for (let i = 0; i < results.length; i++) {
+                    total += parseFloat(results[i].salary);
+                }
+                console.log(`${total.toFixed(2)} was tilized by ${answer.dept}. `);
+                console.log("--------------------------------------------");
+                init()
+            })
+        })
+    });
+
 }
