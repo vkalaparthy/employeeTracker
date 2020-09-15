@@ -640,9 +640,9 @@ function budgetPerDept() {
             let query = "SELECT salary FROM emp_role WHERE dept_id = ?";
             connection.query (query, [deptid], (err, results) => {
                 for (let i = 0; i < results.length; i++) {
-                    total += parseFloat(results[i].salary);
+                    total += results[i].salary;
                 }
-                console.log(`${total.toFixed(2)} was tilized by ${answer.dept}. `);
+                console.log(`${total.toFixed(2)} was utilized by ${answer.dept}. `);
                 console.log("--------------------------------------------");
                 init()
             })
