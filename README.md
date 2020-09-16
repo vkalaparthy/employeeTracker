@@ -44,7 +44,7 @@ Create the database and tables and fill in the rows, schema.sql and seed.sql hav
 
 Small demo
 
-![employeeTracker](./assets/MySQl_EmployeeTracker.gif)
+![employeeTracker](./assets/employeeTracker.gif)
 
 
 ## License
