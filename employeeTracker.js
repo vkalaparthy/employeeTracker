@@ -274,33 +274,31 @@ function addRole() {
     });
 };
 
-// function might be removed soon
-function getRoleQuestion() {
-  return new Promise(function(resolve, reject) {
-    connection.query("SELECT * FROM emp_role", (err, roleResults) => { 
-        if (err) {
-            return reject(err);
-        } 
-        const choiceArray = [];
-        for (let i = 0; i < roleResults.length; i++) {
-            choiceArray.push(roleResults[i].title);
-        }
-        const question = [
+// function to add an employee to the database table employee - first step in multi-step process
+function addEmployee() {
+    inquirer
+        .prompt([
             {
-                name: "role",
-                type: "rawlist",
-                message: "Try new prompt for role",
-                choices: choiceArray
+                name: "firstName",
+                type: "input",
+                message: "What is the first name?",
+                validate: validateTheResponse
+            },
+            {
+                name: "lastName",
+                type: "input",
+                message: "What is the last name?",
+                validate: validateTheResponse
             }
-        ];
-        console.log(question);
-        resolve(question);
-    });
-  })
+        ])
+        .then (answer => {
+            promptForRole(answer.firstName.trim(), answer.lastName.trim(), "addEmployee");
+
+        })
 };
 
-//This function might be removed
-function promptForRole () {
+// function commonly used for adding an employee and updating employee role - a middle step to get role
+function promptForRole(firstName, lastName, action) {
     connection.query("SELECT * FROM emp_role", (err, roleResults) => { 
         if (err) {
             throw err;
@@ -322,19 +320,19 @@ function promptForRole () {
             }
         ])
         .then (answer => {
-            console.log(answer);
-            return answer.role;
+            promptForDept(answer.role, firstName, lastName, action);
         })
     })
 };
 
-//This function is not used, trying to see ow I can move some common promts
-function promptForDept () {
+// function commonly used for adding an employee and updating employee role a middle stept to get department
+function promptForDept(role, firstName, lastName, action) {
     connection.query("SELECT * FROM department", (err, deptResults) => { 
         if (err) {
             throw err;
         }
-        const deptAnswer = inquirer.prompt([ 
+        inquirer
+        .prompt([ 
             {
                 name: "dept",
                 type: "rawlist",
@@ -348,153 +346,101 @@ function promptForDept () {
                 message: "Choose a department"
             }
         ])
-        .then( answer => {
-            console.log(answer);
-            return answer.dept;
+        .then (answer => {
+            if (action === "addEmployee") {
+                addNewEmployee(answer.dept, role, firstName, lastName);
+            } else if (action === "updateEmpRole") {
+                changeEmpRole(answer.dept, role, firstName, lastName);
+            }
         })
     })
 };
 
-//function to add an employee to the database table employee. This function is too long, should see how to break it to smaller chunks!
-async function addEmployee() {
-    let role_id;
-    let manager_id;
-    inquirer
-        .prompt([
-            {
-                name: "firstName",
-                type: "input",
-                message: "What is the first name?",
-                validate: validateTheResponse
-            },
-            {
-                name: "lastName",
-                type: "input",
-                message: "What is the last name?",
-                validate: validateTheResponse
+// function to add an employee to the database table employee - Finals step in multi-step process
+function addNewEmployee(dept, role, firstName, lastName) {
+    let query = "SELECT id FROM emp_role INNER JOIN department ON dept_id = deptid WHERE title = ? AND name = ?";
+    connection.query(query, [role, dept], (err, response) => {
+        if (err) {
+            throw err;
+        }
+        role_id = response[0].id;
+        connection.query("SELECT empid, first_name, last_name from employee", (err, empResult) => {
+            if (err) {
+                throw err;
             }
-        ])
-        .then (answer => {
-            connection.query("SELECT * FROM emp_role", (err, roleResults) => { 
-                if (err) {
-                    throw err;
+            inquirer
+            .prompt([ 
+                {
+                    name: "manager",
+                    type: "rawlist",
+                    choices: function() {
+                        const choiceArray = ["none"];
+                        for (let i = 0; i < empResult.length; i++) {
+                            choiceArray.push(empResult[i].first_name + " " + empResult[i].last_name);
+                        }
+                        return choiceArray;
+                    },
+                    message: "Choose a Manager"
                 }
-                inquirer
-                .prompt([ 
-                    {
-                        name: "role",
-                        type: "rawlist",
-                        choices: function() {
-                            const choiceArray = [];
-                            for (let i = 0; i < roleResults.length; i++) {
-                                choiceArray.push(roleResults[i].title);
-                            }
-                            //return choiceArray;
-                            return ([...new Set(choiceArray)]);
-                        },
-                        message: "Choose a role"
-                    }
-                ])
-            // try {
-            //     const question = await getRoleQuestion();
-            //     console.log(question);
-            // } 
-            // catch (error) {
-            //     console.log(error)
-            // }
-            // init();
-            //const role = await promptForRole();
-        //    const dept = promptForDept();
-                .then(roleAnswer => {
-                    connection.query("SELECT * FROM department", (err, deptResults) => { 
+            ])
+            .then ( (mgrAnswer) => {
+                if (mgrAnswer.manager === "none") {
+                    query = "INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)";
+                    connection.query(query, [firstName, lastName, role_id], function (err, reults) {
                         if (err) {
                             throw err;
                         }
-                        inquirer
-                        .prompt([ 
-                            {
-                                name: "dept",
-                                type: "rawlist",
-                                choices: function() {
-                                    const choiceArray = [];
-                                    for (let i = 0; i < deptResults.length; i++) {
-                                        choiceArray.push(deptResults[i].name);
-                                    }
-                                    return choiceArray;
-                                },
-                                message: "Choose a department"
-                            }
-                        ])
-                        .then (deptAnswer => {
-                            let query2 = "SELECT id FROM emp_role INNER JOIN department ON dept_id = deptid WHERE title = ? AND name = ?";
-                            connection.query(query2, [roleAnswer.role, deptAnswer.dept], (err, response) => {
-                                if (err) {
-                                    throw err;
-                                }
-                                role_id = response[0].id;
-                                connection.query("SELECT empid, first_name, last_name from employee", (err, empResult) => {
-                                    if (err) {
-                                        throw err;
-                                    }
-                                    inquirer
-                                    .prompt([ 
-                                        {
-                                            name: "manager",
-                                            type: "rawlist",
-                                            choices: function() {
-                                                const choiceArray = ["none"];
-                                                for (let i = 0; i < empResult.length; i++) {
-                                                    choiceArray.push(empResult[i].first_name + " " + empResult[i].last_name);
-                                                }
-                                                return choiceArray;
-                                            },
-                                            message: "Choose a Manager"
-                                        }
-                                    ])
-                                    .then ( (mgrAnswer) => {
-                                        if (mgrAnswer.manager === "none") {
-                                            query = "INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)";
-                                            connection.query(query, [answer.firstName, answer.lastName, role_id], function (err, reults) {
-                                                if (err) {
-                                                    throw err;
-                                                }
-                                                //console.log(`Added an employee ${answer.firstName} ${answer.lastName} to database`);
-                                                init();
-                                            });
-                                        }
-                                        else {
-                                            let mgr = mgrAnswer.manager.split(" ");
-                                            let mgrFirstname = mgr[0];
-                                            let mgrLastname = mgr[1];
-                                            for (let i = 0; i < empResult.length; i++) {
-                                                if (empResult[i].first_name === mgrFirstname  && empResult[i].last_name === mgrLastname) {
-                                                    manager_id = empResult[i].empid;
-                                                }
-                                            }
-                                            query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
-                                            connection.query(query, [answer.firstName, answer.lastName, role_id, manager_id], function (err, reults) {
-                                                if (err) {
-                                                    throw err;
-                                                }
-                                                console.log(`Added an employee ${answer.firstName} ${answer.lastName} to database`);
-                                                init();
-                                            });
-                                        }
-                                    })
-                                })
-
-                            })
-
-
-                        })
+                        console.log(`Added an employee ${firstName} ${lastName} to database`);
+                        init();
                     });
-                })
-            });
+                }
+                else {
+                    let mgr = mgrAnswer.manager.split(" ");
+                    let mgrFirstname = mgr[0];
+                    let mgrLastname = mgr[1];
+                    for (let i = 0; i < empResult.length; i++) {
+                        if (empResult[i].first_name === mgrFirstname  && empResult[i].last_name === mgrLastname) {
+                            manager_id = empResult[i].empid;
+                        }
+                    }
+                    query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+                    connection.query(query, [firstName, lastName, role_id, manager_id], function (err, reults) {
+                        if (err) {
+                            throw err;
+                        }
+                        console.log(`Added an employee ${firstName} ${lastName} to database`);
+                        init();
+                    });
+                }
+            })
         })
+
+    })
+};
+// function used to update employee role -- final step
+function changeEmpRole(dept, role, firstName, lastName) {
+    // get role_id based on title(role) & dept
+    let query = "SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = deptid WHERE name = ? AND title = ?";
+    connection.query(query, [dept, role], (err, results) => {
+        if (err) {
+            throw err;
+        }
+        console.log(results[0].id);
+        let role_id = results[0].id;
+        query = "UPDATE employee SET role_id = ? WHERE first_name = ? AND last_name = ?";
+        connection.query(query, [role_id, firstName, lastName], (err, result) => {
+            if (err) {
+                throw err;
+            }
+            //console.log("Successfully updated emp role");
+            init();
+        })
+
+    });
 };
 
 
-// Function to update employee role
+// Function to update employee role  -- first step
 function updateEmployeeRole() {
 
     connection.query("SELECT * FROM employee", (err, results) => { 
@@ -516,49 +462,10 @@ function updateEmployeeRole() {
             message: "Choose a employee"
           }
         ])
-        .then (answer => { 
+        .then (answer => {
             let firstName = answer.empName.split(" ")[0];
             let lastName = answer.empName.split(" ")[1];
-            connection.query("SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = deptid", (err, roleResults) => { 
-                if (err) {
-                    throw err;
-                }
-                inquirer
-                .prompt([ 
-                    {
-                        name: "role",
-                        type: "rawlist",
-                        choices: function() {
-                            const choiceArray = [];
-                            for (let i = 0; i < roleResults.length; i++) {
-                                choiceArray.push(roleResults[i].title + " " + roleResults[i].name);
-                            }
-                            //return choiceArray;
-                            return ([...new Set(choiceArray)]);
-                        },
-                        message: "Choose a role"
-                    }
-                ])
-                .then (roleAnswer => {
-                    let role = roleAnswer.role;
-                    let title = role.split(" ")[0];
-                    let name = role.split(" ")[1];
-                    for (let i = 0; i < roleResults.length; i++) {
-                        if (roleResults[i].title === title && roleResults[i].name === name) {
-                            role_id = roleResults[i].id;
-                        }
-                    }
-                    
-                    query = "UPDATE employee SET role_id = ? WHERE first_name = ? AND last_name = ?";
-                    connection.query(query, [role_id, firstName, lastName], (err, result) => {
-                        if (err) {
-                            throw err;
-                        }
-                        init();
-                        
-                    })
-                })
-            })
+            promptForRole(firstName, lastName, "updateEmpRole");
 
         })
     })

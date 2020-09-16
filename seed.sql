@@ -1,61 +1,9 @@
-DROP DATABASE IF EXISTS company_DB;
 
-CREATE DATABASE company_DB;
-
-USE company_DB;
-
-CREATE TABLE department (
- -- Creates a numeric column called "id" which will automatically increment its default value as we create new rows --
-  deptid INTEGER(11) AUTO_INCREMENT NOT NULL,
-  -- Makes a string column called "name" which cannot contain null --
-  name VARCHAR(30) NOT NULL,
-  -- Sets id as this table's primary key which means all data contained within it will be unique --
-  PRIMARY KEY (deptid)
-);
-
-CREATE TABLE emp_role (
-  -- Creates a numeric column called "id" which will automatically increment its default value as we create new rows --
-  id INTEGER(11) AUTO_INCREMENT NOT NULL,
-  -- Makes a string column called "title" which cannot contain null --
-  title VARCHAR(30) NOT NULL,
-  -- Makes a coloum called "salary" for role which holds decimal value  which is not null --
-  salary DECIMAL(6, 2) NOT NULL,
-  -- Makes a column called "dept_id" to store the foreign key,  department's id from table department --
-  dept_id INT,
-  CONSTRAINT fk_dept
-    FOREIGN KEY (dept_id)
-		REFERENCES department(deptid),
-  -- Sets id as this table's primary key which means all data contained within it will be unique --
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE employee (
-  -- Creates a numeric column called "id" which will automatically increment its default value as we create new rows --
-  empid INTEGER(11) AUTO_INCREMENT NOT NULL,
-  -- Makes a string column called "first_name" which cannot contain null --
-  first_name VARCHAR(30) NOT NULL,
-  -- Makes a string column called "last_name" which cannot contain null --
-  last_name VARCHAR(30) NOT NULL,
-  -- Makes a column called "role_id" to store the information of role's id from table emp_role --
-  role_id INT(11) NOT NULL,
-  -- Makes a column called "manager_id" to store a foreign key information of another employee rom table employee --
-  manager_id INT,
-  CONSTRAINT fk_manager
-    FOREIGN KEY (manager_id)
-		REFERENCES employee(empid),
-  -- Sets id as this table's primary key which means all data contained within it will be unique --
-  PRIMARY KEY (empid)
-);
-
-SELECT * FROM department;
-SELECT * FROM emp_role;
-SELECT * FROM employee;
-
--- Created the follwoing department --
+-- Create the follwoing department --
 INSERT INTO department (name)
 VALUES ("IT"), ("Sales"), ("HR"), ("Marketing");
 
---  Created the follwoing rows in emp_roles table --
+--  Create the follwoing rows in emp_roles table --
 
 INSERT INTO emp_role (title, salary, dept_id)
 VALUES ("Manager", "120000.00", 1),
@@ -81,14 +29,15 @@ INSERT INTO emp_role (title, salary, dept_id)
 VALUES ("Branding Lead", "60000.00", 4),
 ("Market Researcher", "60000.00", 4);
 
-
---------------- IT department ----------
+-----------  employee Table -------------
+--------------- IT department Manager Mark Zuppa ----------
 INSERT INTO employee (first_name, last_name, role_id)
  VALUES ("Mark", "Zuppa", 1);
 
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
+ VALUES ("John", "Doe", 7, 1);
+INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Hannah", "Montana", 5, 1);
-
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Adam", "Cross", 5, 1);
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
@@ -96,38 +45,41 @@ INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Betty", "Crocker", 7, 1);
 
---------------------  Sales department ------------
+-----------------  Sales department Manager April Rose (empid = 7)------------
  
  INSERT INTO EMPLOYEE (first_name, last_name, role_id)
  VALUES ("April", "Rose", 2);
- INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
+
+INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
+ VALUES ("Amanda", "Edwards", 10, 7);
+INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Jack", "Lee", 8, 7);
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Kitty", "Grace", 9, 7);
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Mathew", "Graff", 10, 7);
 
-------------------------------- HR department ---------------
+---------------- HR department Manger May Grace (empid = 12)---------------
 
 INSERT INTO EMPLOYEE (first_name, last_name, role_id)
  VALUES ("May", "Grace", 3);  
  
-
  INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Jill", "Louise", 11, 12);
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Michael", "McDonald", 12, 12);
 
---------------------------  Marketing  -----------------
+------------  Marketing  Manager Don Day (empid = 15) -----------------
 
 INSERT INTO EMPLOYEE (first_name, last_name, role_id)
  VALUES ("Don", "Day", 4);  
-
- ------  Manager id is 15 -------
 
  INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Frank", "Little", 13, 15);
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Rose", "Paris", 14, 15);
 
+------------------------------
+SELECT * FROM department;
+SELECT * FROM emp_role;
 SELECT * FROM employee;
