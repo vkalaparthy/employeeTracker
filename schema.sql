@@ -19,7 +19,7 @@ CREATE TABLE emp_role (
   -- Makes a string column called "title" which cannot contain null --
   title VARCHAR(30) NOT NULL,
   -- Makes a coloum called "salary" for role which holds decimal value  which is not null --
-  salary DECIMAL(6, 2) NOT NULL,
+  salary DECIMAL(10, 2) NOT NULL,
   -- Makes a column called "dept_id" to store the foreign key,  department's id from table department --
   dept_id INT,
   CONSTRAINT fk_dept
@@ -39,11 +39,12 @@ CREATE TABLE employee (
   -- Makes a column called "role_id" to store the information of role's id from table emp_role --
   role_id INT(11) NOT NULL,
   -- Makes a column called "manager_id" to store a foreign key information of another employee rom table employee --
+  -- Adding Cascade delete to this will make this employee automatically deleted if manager is deleted --
   manager_id INT,
   CONSTRAINT fk_manager
     FOREIGN KEY (manager_id)
 		REFERENCES employee(empid),
+       -- ON DELETE CASCADE  -- Adding Cascade delete to this will make this employee automatically deleted if manager is deleted --
   -- Sets id as this table's primary key which means all data contained within it will be unique --
   PRIMARY KEY (empid)
 );
-

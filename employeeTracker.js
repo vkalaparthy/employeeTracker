@@ -544,7 +544,7 @@ function budgetPerDept() {
                 }
             }
             console.log("\n--------------------------------------------");
-            let query = "SELECT salary FROM emp_role WHERE dept_id = ?";
+            let query = "SELECT salary FROM emp_role INNER JOIN employee ON id = role_id WHERE dept_id = ?";
             connection.query (query, [deptid], (err, results) => {
                 for (let i = 0; i < results.length; i++) {
                     total += results[i].salary;
