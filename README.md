@@ -39,12 +39,12 @@ Create the database and tables and fill in the rows, schema.sql and seed.sql hav
 * Utilized budget of a department
 * Exit
 
-![screenshot1](./asset/EmpTracker.JPG)
-![screenshot2](./asset/CaptureEmp2.JPG)
+![screenshot1](./assets/EmpTracker.JPG)
+![screenshot2](./assets/CaptureEmp2.JPG)
 
 Small demo
 
-![employeeTracker](./asset/MySQl_EmployeeTracker.gif)
+![employeeTracker](./assets/MySQl_EmployeeTracker.gif)
 
 
 ## License
