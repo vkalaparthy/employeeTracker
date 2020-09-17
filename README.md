@@ -13,7 +13,7 @@ This Application builds a html file using the information provided by user
 ## Installation
 A seed.sql is provided to explain the Tables used for this application
 * department:
-    * deptid - INT PRIMARY KEY
+    * id - INT PRIMARY KEY
     * name - VARCHAR(30) to hold department name
 
 * role:
@@ -23,7 +23,7 @@ A seed.sql is provided to explain the Tables used for this application
    * dept_id -  INT to hold reference to department role belongs to
 
 * employee:
-   * empid - INT PRIMARY KEY
+   * id - INT PRIMARY KEY
    * first_name - VARCHAR(30) to hold employee first name
    * last_name - VARCHAR(30) to hold employee last name
    * role_id - INT to hold reference to role employee has
