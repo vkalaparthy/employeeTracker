@@ -31,8 +31,14 @@ A seed.sql is provided to explain the Tables used for this application
 ## Usage
 Create the database and tables and fill in the rows, schema.sql and seed.sql have been provided. Install the required mysql, inquirer and console.table NPM packages. In the terminal run the command "node employeeTracker.js". This command line interface allows the user to
 
-* View departments, roles, employees
-* Add departments, roles, employees
+* View
+   * departments 
+   * roles 
+   * employees
+* Add 
+   * departments
+   * roles 
+   * employees
 * Update employee roles
 * View employees by manager
 * Delete employees
