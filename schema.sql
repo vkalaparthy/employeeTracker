@@ -6,11 +6,11 @@ USE company_DB;
 
 CREATE TABLE department (
  -- Creates a numeric column called "id" which will automatically increment its default value as we create new rows --
-  deptid INTEGER(11) AUTO_INCREMENT NOT NULL,
+  id INTEGER(11) AUTO_INCREMENT NOT NULL,
   -- Makes a string column called "name" which cannot contain null --
   name VARCHAR(30) NOT NULL,
   -- Sets id as this table's primary key which means all data contained within it will be unique --
-  PRIMARY KEY (deptid)
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE emp_role (
@@ -24,14 +24,14 @@ CREATE TABLE emp_role (
   dept_id INT,
   CONSTRAINT fk_dept
     FOREIGN KEY (dept_id)
-		REFERENCES department(deptid),
+		REFERENCES department(id),
   -- Sets id as this table's primary key which means all data contained within it will be unique --
   PRIMARY KEY (id)
 );
 
 CREATE TABLE employee (
   -- Creates a numeric column called "id" which will automatically increment its default value as we create new rows --
-  empid INTEGER(11) AUTO_INCREMENT NOT NULL,
+  id INTEGER(11) AUTO_INCREMENT NOT NULL,
   -- Makes a string column called "first_name" which cannot contain null --
   first_name VARCHAR(30) NOT NULL,
   -- Makes a string column called "last_name" which cannot contain null --
@@ -43,8 +43,8 @@ CREATE TABLE employee (
   manager_id INT,
   CONSTRAINT fk_manager
     FOREIGN KEY (manager_id)
-		REFERENCES employee(empid),
+		REFERENCES employee(id),
        -- ON DELETE CASCADE  -- Adding Cascade delete to this will make this employee automatically deleted if manager is deleted --
   -- Sets id as this table's primary key which means all data contained within it will be unique --
-  PRIMARY KEY (empid)
+  PRIMARY KEY (id)
 );

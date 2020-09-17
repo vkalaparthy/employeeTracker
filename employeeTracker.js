@@ -83,11 +83,11 @@ function viewWhat() {
         if (viewOption.choice === "All Departments") {
             query = "SELECT * FROM department";
         } else if (viewOption.choice === "All Roles") {
-            query = "SELECT title, salary, name as department FROM emp_role INNER JOIN department ON dept_id = deptid";
+            query = "SELECT title, salary, name as department FROM emp_role INNER JOIN department ON dept_id = department.id";
         } else {
             query = "SELECT CONCAT(a.first_name, \" \", a.last_name) AS fullname, title, salary, name AS department, ";
-            query += "CONCAT(b.first_name, \" \", b.last_name) AS manager FROM employee a LEFT JOIN employee b ON a.manager_id = b.empid ";
-            query += "INNER JOIN emp_role ON a.role_id = id INNER JOIN department ON dept_id = deptid";
+            query += "CONCAT(b.first_name, \" \", b.last_name) AS manager FROM employee a LEFT JOIN employee b ON a.manager_id = b.id ";
+            query += "INNER JOIN emp_role ON a.role_id = emp_role.id INNER JOIN department ON dept_id = department.id";
         }
         connection.query(query, function(err, res) {
             if (err) throw err;
@@ -127,7 +127,7 @@ function addWhat() {
 function viewEmpByMgr() {
     //console.log("viewEmpByDept");
     // Go back to prompt user
-    let query = "SELECT empid, first_name, last_name FROM employee INNER JOIN emp_role ON role_id = id WHERE title = ?";
+    let query = "SELECT employee.id AS id, first_name, last_name FROM employee INNER JOIN emp_role ON role_id = emp_role.id WHERE title = ?";
     connection.query(query, ["Manager"], function (err, results) {
         if (err) throw err;
         // once you have the items, prompt the user for which they'd like to bid on
@@ -151,11 +151,11 @@ function viewEmpByMgr() {
             let manager_id;
             for (let i = 0; i < results.length; i++) {
                 if (answer.choice === results[i].first_name + " " + results[i].last_name) {
-                    manager_id = results[i].empid;
+                    manager_id = results[i].id;
                 }
             }
             query = "SELECT  CONCAT(first_name, \" \", last_name) AS fullname, title FROM employee ";
-            query += "INNER JOIN emp_role ON role_id = id INNER JOIN department ON dept_id = deptid "
+            query += "INNER JOIN emp_role ON role_id = emp_role.id INNER JOIN department ON dept_id = department.id "
             query += "WHERE manager_id = ?";
             //console.log(manager_id);
             connection.query(query, [manager_id], (err, res) => {
@@ -257,7 +257,7 @@ function addRole() {
             //Get the dept_id from the previous query results
             for (let i = 0; i < results.length; i++) {
                 if (results[i].name === answer.dept)
-                    dept_id = results[i].deptid;
+                    dept_id = results[i].id;
             }
             //console.log(dept_id);
             query = "INSERT INTO emp_role (title, salary, dept_id) VALUES (?, ?, ?)";
@@ -358,13 +358,13 @@ function promptForDept(role, firstName, lastName, action) {
 
 // function to add an employee to the database table employee - Finals step in multi-step process
 function addNewEmployee(dept, role, firstName, lastName) {
-    let query = "SELECT id FROM emp_role INNER JOIN department ON dept_id = deptid WHERE title = ? AND name = ?";
+    let query = "SELECT emp_role.id FROM emp_role INNER JOIN department ON dept_id = department.id WHERE title = ? AND name = ?";
     connection.query(query, [role, dept], (err, response) => {
         if (err) {
             throw err;
         }
         role_id = response[0].id;
-        connection.query("SELECT empid, first_name, last_name from employee", (err, empResult) => {
+        connection.query("SELECT id, first_name, last_name from employee", (err, empResult) => {
             if (err) {
                 throw err;
             }
@@ -400,7 +400,7 @@ function addNewEmployee(dept, role, firstName, lastName) {
                     let mgrLastname = mgr[1];
                     for (let i = 0; i < empResult.length; i++) {
                         if (empResult[i].first_name === mgrFirstname  && empResult[i].last_name === mgrLastname) {
-                            manager_id = empResult[i].empid;
+                            manager_id = empResult[i].id;
                         }
                     }
                     query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
@@ -420,12 +420,12 @@ function addNewEmployee(dept, role, firstName, lastName) {
 // function used to update employee role -- final step
 function changeEmpRole(dept, role, firstName, lastName) {
     // get role_id based on title(role) & dept
-    let query = "SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = deptid WHERE name = ? AND title = ?";
+    let query = "SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = department.id WHERE name = ? AND title = ?";
     connection.query(query, [dept, role], (err, results) => {
         if (err) {
             throw err;
         }
-        console.log(results[0].id);
+        //console.log(results[0].id);
         let role_id = results[0].id;
         query = "UPDATE employee SET role_id = ? WHERE first_name = ? AND last_name = ?";
         connection.query(query, [role_id, firstName, lastName], (err, result) => {
@@ -500,10 +500,10 @@ function deleteEmployee() {
             let empid = 0;
             for (let i = 0; i < results.length; i++) {
                 if (first_name === results[i].first_name  && last_name === results[i].last_name) {
-                    empid = results[i].empid;
+                    empid = results[i].id;
                 }
             }
-            connection.query("DELETE FROM employee WHERE empid = ?", [empid], (err, results) => {
+            connection.query("DELETE FROM employee WHERE id = ?", [empid], (err, results) => {
                 if (err) {
                     throw err;
                 }
@@ -540,16 +540,16 @@ function budgetPerDept() {
             let total = 0;
             for (let i = 0; i < deptResults.length; i++) {
                 if(deptResults[i].name === answer.dept) {
-                    deptid = deptResults[i].deptid;
+                    deptid = deptResults[i].id;
                 }
             }
             console.log("\n--------------------------------------------");
-            let query = "SELECT salary FROM emp_role INNER JOIN employee ON id = role_id WHERE dept_id = ?";
+            let query = "SELECT salary FROM emp_role INNER JOIN employee ON emp_role.id = role_id WHERE dept_id = ?";
             connection.query (query, [deptid], (err, results) => {
                 for (let i = 0; i < results.length; i++) {
                     total += results[i].salary;
                 }
-                console.log(`${total.toFixed(2)} was utilized by ${answer.dept}. `);
+                console.log(`${total.toFixed(2)} is utilized by ${answer.dept}. `);
                 console.log("--------------------------------------------");
                 init()
             })

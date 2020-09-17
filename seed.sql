@@ -78,3 +78,8 @@ INSERT INTO EMPLOYEE (first_name, last_name, role_id)
  VALUES ("Frank", "Little", 13, 15);
 INSERT INTO EMPLOYEE (first_name, last_name, role_id, manager_id)
  VALUES ("Rose", "Paris", 14, 15);
+
+ -- SELECT --
+SELECT * FROM department;
+SELECT * FROM emp_role;
+SELECT * FROM employee;
