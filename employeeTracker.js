@@ -420,7 +420,7 @@ function addNewEmployee(dept, role, firstName, lastName) {
 // function used to update employee role -- final step
 function changeEmpRole(dept, role, firstName, lastName) {
     // get role_id based on title(role) & dept
-    let query = "SELECT id, title, name FROM emp_role INNER JOIN department ON dept_id = department.id WHERE name = ? AND title = ?";
+    let query = "SELECT emp_role.id, title, name FROM emp_role INNER JOIN department ON dept_id = department.id WHERE name = ? AND title = ?";
     connection.query(query, [dept, role], (err, results) => {
         if (err) {
             throw err;
