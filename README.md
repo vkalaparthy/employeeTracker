@@ -1,5 +1,5 @@
 # employeeTracker
-A content Management System that uses MySQL database, Node and inquirer to manage employee information
+A content Management System that uses MySQL database, Node and inquirer to manage employee information.  Note that this is not designed with promise or callback, as we did not learn that when this was due.
 
 ## Description
 This Application builds a html file using the information provided by user
