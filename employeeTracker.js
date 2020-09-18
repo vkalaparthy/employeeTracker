@@ -544,15 +544,14 @@ function budgetPerDept() {
                     deptid = deptResults[i].id;
                 }
             }
-            //console.log("\n--------------------------------------------".bgYellow);
+
             let query = "SELECT salary FROM emp_role INNER JOIN employee ON emp_role.id = role_id WHERE dept_id = ?";
             connection.query (query, [deptid], (err, results) => {
                 for (let i = 0; i < results.length; i++) {
                     total += results[i].salary;
                 }
-                console.log("\n" + total.toFixed(2).bgYellow.black + " is the budget utilized by ".bgYellow.black + answer.dept.bgYellow.black );
-                //console.log(`${total.toFixed(2)} is utilized by ${answer.dept}. `);
-                //console.log("--------------------------------------------".bgYellow);
+                const output = " " + total.toFixed(2) + " is the budget utilized by " + answer.dept + ". "
+                console.log("\n" + output.bgYellow.black );
                 init()
             })
         })
